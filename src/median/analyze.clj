@@ -18,7 +18,8 @@
   (let [rm-data (map (fn [n] [(count l) :rm n])
                      (take s (repeatedly (fn [] (time-it (rand-median l))))))
         dm-data (map (fn [n] [(count l) :dm n])
-                     (take s (repeatedly (fn [] (time-it (deter-median l))))))]
+                     (take s (repeatedly (fn [] (time-it
+                                                 (deter-median l 5))))))]
     (concat rm-data dm-data)))
 
 (defn build-dataset
@@ -40,3 +41,26 @@
                      :y-label "Time (ms)")
         (add-lines ($ :count rm-data) (:fitted rm-lm))
         (add-lines ($ :count dm-data) (:fitted dm-lm))))))
+
+(defn run-deter-test
+  [l s p]
+  (let [partitions (map inc (range 2 p))
+        data (map (fn [n]
+                    (map (fn [t] [(count l) n t])
+                         (take s
+              (repeatedly (fn [] (time-it (deter-median l n))))))) partitions)]
+    (reduce concat data)))
+
+(defn build-deter-dataset
+  [n p s part]
+  (let [test-data (test-lists n p pow)]
+    (dataset [:count :parts :time]
+             (reduce concat (map #(run-deter-test % s part) test-data)))))
+
+(defn generate-deter-plot
+  [n p s part]
+  (with-data (build-deter-dataset n p s part)
+    (scatter-plot ($ :count) ($ :time)
+                  :group-by :parts
+                  :x-label "Input Size"
+                  :y-label "Time (ms)")))

@@ -33,16 +33,17 @@
 (declare deter-median)
 
 (defn find-median-of-medians
-  [l]
+  "Find the median of medians of list l using partitions of size p"
+  [l p]
   (let [l (into [] l)]
-    (if (< (count l) 5)
+    (if (< (count l) p)
      (nth (into [] (sort l)) (ceil (/ (count l) 2)))
-     (let [subvecs (partition 5
-                              (subvec l 0 (- (count l) (mod (count l) 5))))
-           medians (map (fn [n] (nth (sort n) 2)) subvecs)]
-       (deter-median (into [] medians))))))
+     (let [subvecs (partition p
+                              (subvec l 0 (- (count l) (mod (count l) p))))
+           medians (map (fn [n] (nth (sort n) (floor (/ p 2)))) subvecs)]
+       (deter-median (into [] medians) p)))))
 
 (defn deter-median
   "A median finding algorithm with asymptotically linear running time"
-  [l]
-  (median-skeleton l find-median-of-medians))
+  [l p]
+  (median-skeleton l #(find-median-of-medians % p)))
