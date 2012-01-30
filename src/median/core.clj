@@ -28,7 +28,7 @@
 (defn rand-median
   "A randomized median finding algorithm"
   [l]
-  (median-skeleton l #(floor (/ (count %) 2))))
+  (median-skeleton l #(nth % (rand-int (count %)))))
 
 (declare deter-median)
 
