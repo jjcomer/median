@@ -20,18 +20,41 @@
 
 (defn fill-chart
   [s1 s2]
-  (let [empty-chart (createEmptyChart (count s1) (count s2))]))
+  (let [empty-chart (createEmptyChart (inc (count s1)) (inc (count s2)))]
+    (loop [coords (for [row (range (count s1))
+                        col (range (count s2))]
+                    [(inc row) (inc col)])
+           chart empty-chart]
+      (if (empty? coords)
+        chart
+        (let [[row col] (first coords)]
+         (if (= (nth s1 (dec row)) (nth s2 (dec col)))
+           (recur (rest coords) (assoc-in chart [row col]
+                                         (Cell.
+                                          (inc (:value (get-in chart
+                                                        [(dec row) (dec col)])))
+                                          [-1 -1])))
+           (recur (rest coords) (assoc-in chart [row col]
+                                          (let [decr (:value
+                                                      (get-in chart
+                                                              [(dec row) col]))
+                                                decc (:value
+                                                      (get-in chart
+                                                              [row (dec col)]))]
+                                            (if (> decr decc)
+                                              (Cell. decr [-1 0])
+                                              (Cell. decc [0 -1])))))))))))
 
 (defn longest-subsequence
   "Given two strings, the longest subsequence is returned"
   [s1 s2]
   (let [filled-chart (fill-chart s1 s2)]
-    (loop [row (dec (count s1))
-           col (dec (count s2))
+    (loop [row (count s1)
+           col (count s2)
            acc []]
       (if (or (= 0 row) (= 0 col))
         (apply str (reverse acc))
         (let [[nr nc] (:parent (get-in filled-chart [row col]))]
-          (if (= -1 x y)
-            (recur (+ row nr) (+ col nc) (conj acc (nth s1 row)))
+          (if (= -1 nr nc)
+            (recur (+ row nr) (+ col nc) (conj acc (nth s1 (dec row))))
             (recur (+ row nr) (+ col nc) acc)))))))
