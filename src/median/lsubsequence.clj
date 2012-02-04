@@ -27,20 +27,16 @@
            chart empty-chart]
       (if (empty? coords)
         chart
-        (let [[row col] (first coords)]
+        (let [[row col] (first coords)
+              get-value #(:value (get-in chart [%1 %2]))]
          (if (= (nth s1 (dec row)) (nth s2 (dec col)))
            (recur (rest coords) (assoc-in chart [row col]
-                                         (Cell.
-                                          (inc (:value (get-in chart
-                                                        [(dec row) (dec col)])))
-                                          [-1 -1])))
+                                          (Cell.
+                                           (inc (get-value (dec row) (dec col)))
+                                           [-1 -1])))
            (recur (rest coords) (assoc-in chart [row col]
-                                          (let [decr (:value
-                                                      (get-in chart
-                                                              [(dec row) col]))
-                                                decc (:value
-                                                      (get-in chart
-                                                              [row (dec col)]))]
+                                          (let [decr (get-value (dec row) col)
+                                                decc (get-value row (dec col))]
                                             (if (> decr decc)
                                               (Cell. decr [-1 0])
                                               (Cell. decc [0 -1])))))))))))
