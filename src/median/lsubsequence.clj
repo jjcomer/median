@@ -1,6 +1,7 @@
-(ns median.lsubsequence)
+(ns median.lsubsequence
+  (:use [clojure.core.memoize]))
 
-;The answer for these strings is MJAU
+                                        ;The answer for these strings is MJAU
 (def testString1 "XMJYAUZ")
 (def testString2 "MZJAWXU")
 
@@ -40,8 +41,8 @@
                                              (Cell. decr [-1 0])
                                              (Cell. decc [0 -1]))))))))))
 
-(defn longest-subsequence
-  "Given two strings, the longest subsequence is returned"
+(defn lcs
+  "Given two strings, the longest common subsequence is returned"
   [s1 s2]
   (let [filled-chart (fill-chart s1 s2)]
     (loop [row (count s1)
@@ -53,3 +54,22 @@
           (if (= -1 nr nc)
             (recur (+ row nr) (+ col nc) (conj acc (nth s1 (dec row))))
             (recur (+ row nr) (+ col nc) acc)))))))
+
+(def memo-lcs-inner
+  "This is the memoized version of the LCS algorithm"
+  (memo
+   (fn [s1 s2]
+     (let [s1 (reverse (vec s1))
+           s2 (reverse (vec s2))]
+       (if (or (empty? s1) (empty? s2))
+         0
+         (if (= (first s1) (first s2))
+           (+ 1 (memo-lcs-inner (rest s1) (rest s2)))
+           (max (memo-lcs-inner (rest s1) s2)
+                (memo-lcs-inner s1 (rest s2)))))))))
+
+(defn lcs-memo
+  [s1 s2]
+  (do
+    (memo-clear! memo-lcs-inner)
+    (memo-lcs-inner s1 s2)))
