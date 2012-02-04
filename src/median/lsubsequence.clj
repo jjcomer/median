@@ -1,4 +1,4 @@
-(ns median.lsubstring)
+(ns median.lsubsequence)
 
 ;The answer for these strings is MJAU
 (def testString1 "XMJYAUZ")
