@@ -20,26 +20,25 @@
 
 (defn fill-chart
   [s1 s2]
-  (let [empty-chart (createEmptyChart (inc (count s1)) (inc (count s2)))]
-    (loop [coords (for [row (range (count s1))
-                        col (range (count s2))]
-                    [(inc row) (inc col)])
-           chart empty-chart]
-      (if (empty? coords)
-        chart
-        (let [[row col] (first coords)
-              get-value #(:value (get-in chart [%1 %2]))]
-         (if (= (nth s1 (dec row)) (nth s2 (dec col)))
-           (recur (rest coords) (assoc-in chart [row col]
-                                          (Cell.
-                                           (inc (get-value (dec row) (dec col)))
-                                           [-1 -1])))
-           (recur (rest coords) (assoc-in chart [row col]
-                                          (let [decr (get-value (dec row) col)
-                                                decc (get-value row (dec col))]
-                                            (if (> decr decc)
-                                              (Cell. decr [-1 0])
-                                              (Cell. decc [0 -1])))))))))))
+  (loop [coords (for [row (range (count s1))
+                      col (range (count s2))]
+                  [(inc row) (inc col)])
+         chart (createEmptyChart (inc (count s1)) (inc (count s2)))]
+    (if (empty? coords)
+      chart
+      (let [[row col] (first coords)
+            get-value #(:value (get-in chart [%1 %2]))]
+        (if (= (nth s1 (dec row)) (nth s2 (dec col)))
+          (recur (rest coords) (assoc-in chart [row col]
+                                         (Cell.
+                                          (inc (get-value (dec row) (dec col)))
+                                          [-1 -1])))
+          (recur (rest coords) (assoc-in chart [row col]
+                                         (let [decr (get-value (dec row) col)
+                                               decc (get-value row (dec col))]
+                                           (if (> decr decc)
+                                             (Cell. decr [-1 0])
+                                             (Cell. decc [0 -1]))))))))))
 
 (defn longest-subsequence
   "Given two strings, the longest subsequence is returned"
