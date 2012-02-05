@@ -59,17 +59,43 @@
   "This is the memoized version of the LCS algorithm"
   (memo
    (fn [s1 s2]
-     (let [s1 (reverse (vec s1))
-           s2 (reverse (vec s2))]
+     (let [s1 (vec s1)
+           s2 (vec s2)]
        (if (or (empty? s1) (empty? s2))
-         0
-         (if (= (first s1) (first s2))
-           (+ 1 (memo-lcs-inner (rest s1) (rest s2)))
-           (max (memo-lcs-inner (rest s1) s2)
-                (memo-lcs-inner s1 (rest s2)))))))))
+         (Cell. 0 [0 0])
+         (if (= (last s1) (last s2))
+           (Cell. (+ 1 (:value (memo-lcs-inner (subvec s1 0 (dec (count s1)))
+                                               (subvec s2 0 (dec (count s2))))))
+                  [-1 -1])
+           (let [s1v (:value (memo-lcs-inner (subvec s1 0 (dec (count s1)))
+                                             s2))
+                 s2v (:value (memo-lcs-inner s1
+                                             (subvec s2 0 (dec (count s2)))))]
+             (if (> s1v s2v)
+               (Cell. s1v [-1 0])
+               (Cell. s2v [0 -1])))))))))
+
+(defn find-memo-string
+  "Using the cached values of the memoized lcs function we can find the lcs"
+  [s1 s2]
+  (loop [s1 (vec s1)
+         s2 (vec s2)
+         acc []]
+    (let [cell (memo-lcs-inner s1 s2)
+          [s1-offset s2-offset] (:parent cell)]
+      (if (= 0 s1-offset s2-offset)
+        (apply str (reverse acc))
+        (if (= -1 s1-offset s2-offset)
+          (recur (subvec s1 0 (dec (count s1)))
+                 (subvec s2 0 (dec (count s2)))
+                 (conj acc (nth s1 (dec (count s1)))))
+          (recur (if (= -1 s1-offset) (subvec s1 0 (dec (count s1))) s1)
+                 (if (= -1 s2-offset) (subvec s2 0 (dec (count s2))) s2)
+                 acc))))))
 
 (defn lcs-memo
   [s1 s2]
   (do
     (memo-clear! memo-lcs-inner)
-    (memo-lcs-inner s1 s2)))
+    (memo-lcs-inner s1 s2)
+    (find-memo-string s1 s2)))

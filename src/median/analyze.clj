@@ -38,7 +38,8 @@
       (doto (scatter-plot ($ :count) ($ :time)
                      :group-by :alg
                      :x-label "Input Size"
-                     :y-label "Time (ms)")
+                     :y-label "Time (ms)"
+                     :legend true)
         (add-lines ($ :count rm-data) (:fitted rm-lm))
         (add-lines ($ :count dm-data) (:fitted dm-lm))))))
 
@@ -60,7 +61,20 @@
 (defn generate-deter-plot
   [n p s part]
   (with-data (build-deter-dataset n p s part)
-    (scatter-plot ($ :count) ($ :time)
-                  :group-by :parts
-                  :x-label "Input Size"
-                  :y-label "Time (ms)")))
+    (let [part-data (map #($where {:parts {:eq %}}) (map inc (range 2 p)))]
+      (loop [plot (scatter-plot
+                   ($ :count (first part-data)) ($ :time (first part-data))
+                   :x-label "Input Size"
+                   :y-label "Time (ms)"
+                   :group-by :parts
+                   :legend true)
+             data (rest part-data)
+             part-num 3]
+        (if (seq data)
+          (recur (add-points plot
+                             ($ :count (first data))
+                             ($ :time (first data))
+                             :series-label (str "Partitions: " part-num))
+                 (rest part-data)
+                 (inc part-num))
+          plot)))))
